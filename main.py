@@ -17,8 +17,8 @@ class Window(pyglet.window.Window):
 
     def __init__(self, *args, **kwargs):
         super(Window, self).__init__(*args, **kwargs)
-        self.model = World()
-        self.player = Player((64,6,64))
+        self.world = World()
+        self.player = Player((0,0,0))
         pyglet.clock.schedule(self.update)
 
 
@@ -35,6 +35,8 @@ class Window(pyglet.window.Window):
             self.set_exclusive_mouse(False)
         if symbol == key.M:
             self.set_exclusive_mouse(True)
+        if symbol == key.I:
+            self.world.test_func(self.player.pos)
         self.player.on_key_press(symbol, modifiers)
 
 
@@ -70,7 +72,7 @@ class Window(pyglet.window.Window):
         x, y, z = self.player.pos                                                  # no need for math library when it's in player class
         glTranslatef(-x,-y,-z)
         
-        self.model.draw()
+        self.world.batch.draw()
 
 
 
