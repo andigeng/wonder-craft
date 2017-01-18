@@ -57,44 +57,44 @@ class Window(pyglet.window.Window):
     def on_key_release(self, symbol, modifiers):
         self.player.on_key_release(symbol, modifiers)
 
-
-    def set_projection(self): 
+    def set3d(self): 
+        #glEnable(GL_DEPTH_TEST)            # might need to re-enable it after adding more features later -- no need rn
         glMatrixMode(GL_PROJECTION)
         glLoadIdentity()
-
-
-    def set_model_view(self): 
+        gluPerspective(70, self.width/self.height, 0.05, 1000)
         glMatrixMode(GL_MODELVIEW)
         glLoadIdentity()
 
-
-    def set3d(self): 
-        self.set_projection()
-        gluPerspective(70, self.width/self.height, 0.05, 1000)
-        self.set_model_view();
-
     def set2d(self):
-        #self.set_projection()
-        glColor3f(0.0, 0.0, 0.0);
-        glRectf(-0.75,0.75, 0.75, -0.75);
+        glViewport(0, 0, 600, 600)
+        glMatrixMode(GL_PROJECTION)
+        glLoadIdentity()
+        glOrtho(0, 600, 0, 600, -1, 1)
+        glMatrixMode(GL_MODELVIEW)
+        glLoadIdentity()
 
+    def draw_scene(self):
+        self.set3d()
+        x, y = self.player.rot
+        glRotatef(x, 0, 1, 0)
+        glRotatef(-y, math.cos(math.radians(x)), 0, math.sin(math.radians(x)))     # Move this elsewhere
+        x, y, z = self.player.loc                                                  # no need for math library when it's in player class
+        glTranslatef(-x,-y,-z)
+        self.world.batch.draw()
+
+    def draw_hud(self):
+        self.set2d()
+        glPointSize(5.0)
+        pyglet.graphics.draw(1, pyglet.gl.GL_POINTS,
+        ('v2i', (300,300)))
 
     def on_draw(self):
         """  """
         self.clear()
-        self.set3d()
+        self.draw_scene()
+        self.draw_hud()
         
-        x, y = self.player.rot
-        glRotatef(x, 0, 1, 0)
-        glRotatef(-y, math.cos(math.radians(x)), 0, math.sin(math.radians(x)))     # Move this elsewhere
         
-        x, y, z = self.player.loc                                                  # no need for math library when it's in player class
-        glTranslatef(-x,-y,-z)
-        
-        #self.set2d()
-
-        self.world.batch.draw()
-
 
 
 if __name__ == '__main__':
