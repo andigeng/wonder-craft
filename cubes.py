@@ -15,7 +15,8 @@ TEXTURE_GRID_SIZE = 8
 
 
 def get_closest_coord(x, y, z):
-	""" """
+	""" Input: 3D coordinate. Output: rounded 3D coordinate to nearest integers.
+	"""
 	x = int(round(x))
 	y = int(round(y))
 	z = int(round(z))
@@ -23,6 +24,9 @@ def get_closest_coord(x, y, z):
 
 
 def get_cube_vertices(x, y, z, n=CUBE_HALF_SIZE):
+	""" Takes in a 3D coordinate, and returns 24 3D coordinates in the form of a
+	72 float tuple. Each group of 4 coordinates represents a cube face.
+	"""
 	return (
 		x-n,y+n,z-n, x-n,y+n,z+n, x+n,y+n,z+n, x+n,y+n,z-n,		# top
 		x-n,y-n,z-n, x+n,y-n,z-n, x+n,y-n,z+n, x-n,y-n,z+n,		# bottom 
@@ -34,14 +38,16 @@ def get_cube_vertices(x, y, z, n=CUBE_HALF_SIZE):
 
 
 def tex_coord(x, y, n=1.0/TEXTURE_GRID_SIZE):
-	"""  """
+	""" Returns 2D coordinates for a square. This represents a single face from
+	the texture atlas. """
 	dx = x * n
 	dy = y * n
 	return dx,dy, dx+n,dy, dx+n,dy+n, dx,dy+n
 
 
 def tex_coords(top, bottom, side):
-	"""  """
+	""" Returns 2D coordinates for 6 squares in the form of a 48 float tuple. Each
+	group of 4 coordinates represents a square face. """
 	top 	 = tex_coord(*top)
 	bottom = tex_coord(*bottom)
 	side 	 = tex_coord(*side)
