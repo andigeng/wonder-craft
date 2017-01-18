@@ -10,9 +10,9 @@ MOUSE_SENS    = 0.1
 
 class Player(object):   
     """  """
-    def __init__(self, pos=(0,0,0)):
+    def __init__(self, loc=(0,0,0)):
         # Position Attributes
-        self.pos = pos
+        self.loc = loc
         self.rot = (0, 0)
         
         # Movement attributes
@@ -30,9 +30,9 @@ class Player(object):
         Reimplement this later -- this is a somewhat mucky implementation of
         updating and doesn't really make sense. Create a handler class later
         """
-        x, y, z = self.pos
+        x, y, z = self.loc
         dx, dy, dz = self.get_velocity()
-        self.pos = x + dx, y + dy, z - dz
+        self.loc = x + dx, y + dy, z - dz
 
 
     def get_velocity(self):
@@ -47,6 +47,20 @@ class Player(object):
         dx = (m.sin(m.radians(rx))    * self.move_forward + 
               m.sin(m.radians(90-rx)) * self.move_right) * s * mult
 
+        #print (dx, dy, dz)
+        return dx, dy, dz
+
+
+    def get_sight_vector(self):
+        rx, rz = self.rot
+        mult = m.cos(m.radians(rz))
+
+        dz = m.sin(m.radians(rx-90)) * mult
+        dy = m.sin(m.radians(rz))
+        dx = m.cos(m.radians(rx-90)) * mult
+
+        print("sight length: {}".format(m.sqrt(dx**2 + dy**2 + dz**2)))
+        print(dx, dy, dz)
         return dx, dy, dz
 
 
@@ -54,7 +68,7 @@ class Player(object):
         x, y = self.rot
         x, y = x+dx*MOUSE_SENS, y+dy*MOUSE_SENS
         y = max(-90, min(90, y))
-        print(x,y)
+        #print(x,y)
         self.rot = x, y
 
 

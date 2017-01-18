@@ -19,7 +19,6 @@ ZERO = (0, 0, 0)
 class World(object):
     """ """
     def __init__(self):
-
         # Textures
         self.block_textures = None
         # Insert other textures to be loaded here later
@@ -29,49 +28,65 @@ class World(object):
         self.visible = {}
         #self.sectors = {}
         self.batch  = pyglet.graphics.Batch()
-        #self.sector_test()
-        #self.render_all_map()
-        #self.add_block(ZERO, C.SAND)
-        #self.show_block(ZERO, C.SAND)        
-        self.sector_test()
+        self.perlin_noise_test()
         self.render_all_map()
         self.enable_fog()
 
 
-    def add_block(self, pos, block_type):
-        self.map[pos] = block_type         # future optimization: instead of storing block_type, store block_id (integers instead oflarger objects)
+    def add_block(self, loc, block_type):
+        self.map[loc] = block_type         # future optimization: instead of storing block_type, store block_id (integers instead oflarger objects)
 
-    def del_block(self, pos):
-        del self.map[pos]
-        self.visible.pop(pos).delete()
+    def _del_block(self, loc):
+        if (loc in self.map):
+            del self.map[loc]
+            self.visible.pop(loc).delete()
+        #print (loc in self.visible)
 
-
-    def show_block(self, pos, block_type):
-        cube_coords = C.get_cube_vertices(*pos)
-        self.visible[pos] = self.batch.add(24, GL_QUADS, self.block_textures,
+    def show_block(self, loc, block_type):
+        cube_coords = C.get_cube_vertices(*loc)
+        self.visible[loc] = self.batch.add(24, GL_QUADS, self.block_textures,
                                           ('v3f', cube_coords),
                                           ('t2f', block_type))
 
-    def hide_block(self, pos):
+    def hide_block(self, loc):
         pass
 
-    def render_map(self, pos):
+    def render_map(self, loc):
         pass
 
-    def sector_test(self):      #, pos):
+    def sector_test(self):      #, loc):
         size = 32
         for i in range(size):
             for j in range(size):
                 self.add_block((i,0,j), C.GRASS)
 
     def render_all_map(self):
-        for pos, block_type in self.map.iteritems():
-            self.show_block(pos, block_type)
+        for loc, block_type in self.map.iteritems():
+            self.show_block(loc, block_type)
 
-    def test_func(self, pos):
-        pos = C.get_closest_coord(*pos)
-        self.del_block(pos)
-        #print("TESTING")    
+    def del_block(self, loc):
+        loc = C.get_closest_coord(*loc)
+        self._del_block(loc)
+
+    def place_block(self, loc):
+        loc = C.get_closest_coord(*loc)
+        if (loc in self.map):
+            self._del_block(loc)
+        self.add_block(loc, C.SAND)
+        self.show_block(loc, C.SAND)
+
+    def hit_test(self, origin, vector, distance=20, increments=10):
+        x, y, z = origin
+        dx, dy, dz = vector
+        dx, dy, dz = dx/increments, dy/increments, dz/increments
+        for k in range(increments*distance):
+            block_loc = x + k*dx, y + k*dy, z + k*dz
+            block_loc = C.get_closest_coord(*block_loc)
+            if (block_loc in self.map):
+                j = k-1
+                empty_loc = C.get_closest_coord(x+j*dx, y+j*dy, z+j*dz)
+                return block_loc, empty_loc
+        return None, None
 
     def load_textures(self):
         self.block_textures  = self._load_texture('data/textures/blocks.png')
@@ -84,10 +99,9 @@ class World(object):
         return pyglet.graphics.TextureGroup(tex)
 
     def perlin_noise_test(self):
-        size = 32
+        size = 64
         for i in range(size):
             for j in range(size):
-                #k = random.randint(0,0)
                 x = float(i)/20
                 y = float(j)/20
                 k = pnoise2(x, y)*7
@@ -101,17 +115,17 @@ class World(object):
                     if random.random() > 0.99:
                         self.add_tree((i, k+1, j), random.randint(2,4))
 
-    def add_tree(self, pos, size):
-        x, y, z = pos
+    def add_tree(self, loc, size):
+        x, y, z = loc
         x, y, z = C.get_closest_coord(x, y, z)
         for i in range(0, size):
             self.add_block((x, y+i,z), C.WOOD)
         self.make_square_base((x,y+size,z), 1, C.LEAF)
         self.make_cross_base((x,y+size+1,z), 1, C.LEAF)
                     
-    def make_square_base(self, pos, size, block_type):
+    def make_square_base(self, loc, size, block_type):
         """ Takes an integer, creates a horizontal square of size 2*size+1 at coordinates. """
-        x, y, z = pos
+        x, y, z = loc
         x, y, z = C.get_closest_coord(x, y, z)
         for i in range(-size, size+1):
             for j in range(-size, size+1):
@@ -124,8 +138,8 @@ class World(object):
                     if (random.random() > 0.9):
                         self.add_block((i,j,k), random.choice(BLOCK_TYPES))    
 
-    def make_cross_base(self, pos, size, block_type):
-        x, y, z = pos
+    def make_cross_base(self, loc, size, block_type):
+        x, y, z = loc
         x, y, z = C.get_closest_coord(x, y, z)
         for i in range(-size, size+1):
             self.add_block((x+i,y,z), block_type)
