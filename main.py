@@ -20,13 +20,15 @@ class Window(pyglet.window.Window):
     def __init__(self, *args, **kwargs):
         super(Window, self).__init__(*args, **kwargs)
         self.world = World()
-        self.player = Player((32,12,32))
+        self.player = Player((0,6,0))
         pyglet.clock.schedule(self.update)
 
 
     def update(self, dt):
         """ Called by Pyglet whenever an update is scheduled. """
-        self.player.update(dt)
+        x, y, z = self.player.get_new_position(dt)
+        x, y, z, stop_x, stop_y, stop_z = self.world.collision_adjust((x, y, z))
+        self.player.update_movement(x, y, z, stop_x, stop_y, stop_z)
 
 
     def on_mouse_motion(self, x, y, dx, dy):
@@ -37,15 +39,14 @@ class Window(pyglet.window.Window):
     def on_mouse_release(self, x, y, button, modifiers):
         """ Automatically called by Pyglet. """
         vec = self.player.get_sight_vector()
-        #print(vec)
         block_loc, empty_loc = self.world.hit_test(self.player.loc, vec)
-        #print(block_loc)
-        #print(empty_loc)
+
         if block_loc != None:
-            if button == pyglet.window.mouse.RIGHT: #print('LEFT')
+            if button == pyglet.window.mouse.RIGHT:
                 self.world.place_block(empty_loc)
             if button == pyglet.window.mouse.LEFT:
                 self.world.del_block(block_loc)
+
 
 
     def on_key_press(self, symbol, modifiers):
@@ -59,6 +60,7 @@ class Window(pyglet.window.Window):
         if symbol == key.T:
             self.world.place_block(self.player.loc)
         else: self.player.on_key_press(symbol, modifiers)
+
 
 
     def on_key_release(self, symbol, modifiers):
@@ -113,9 +115,9 @@ class Window(pyglet.window.Window):
 if __name__ == '__main__':
 
     INSTRUCTIONS = ("Press 'WASD' to move around, hold 'SHIFT' down to increase speed\n"
-                "'Left click' to delete blocks, 'Right click' to place blocks\n"
-                "'O' to snap back to original location\n"
-                "'ESC' to display mouse, 'M' to hide it\n")
+                    "'Left click' to delete blocks, 'Right click' to place blocks\n"
+                    "'O' to snap back to original location\n"
+                    "'ESC' to display mouse, 'M' to hide it\n")
     print(INSTRUCTIONS)
 
     window = Window(width=600, height=600, resizable=False)
@@ -123,4 +125,3 @@ if __name__ == '__main__':
     glClearColor(*world.CLEAR_COLOR)
     glEnable(GL_DEPTH_TEST)
     pyglet.app.run()
-

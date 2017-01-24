@@ -11,7 +11,7 @@ import random
 import cubes as C
 
 
-
+    
 CLEAR_COLOR = (0.5, 0.7, 1, 1)
 ZERO = (0, 0, 0)
 
@@ -35,7 +35,7 @@ class World(object):
 
         self.perlin_noise_test()
         self.render_all_map()
-        self.enable_fog()
+        #self.enable_fog()
 
 
     def add_block(self, loc, block_type):
@@ -91,6 +91,37 @@ class World(object):
                 empty_loc = C.get_closest_coord(x+j*dx, y+j*dy, z+j*dz)
                 return block_loc, empty_loc
         return None, None
+
+
+    def collision_adjust(self, loc, height=1.8, width=0.2):
+        """ Very inelegant implementation of collision detection. Polish this up
+        later. """
+        x, y, z = loc
+        stop_x, stop_y, stop_z = False, False, False
+        padding = (1-width)/2
+
+        # Check if there is ground below
+        rx, ry, rz = C.get_closest_coord(x, y, z)
+        if ((rx,ry,rz) in self.map):
+            y = ry + 0.5
+            stop_y = True
+
+        # Check the sides of the player
+        print(rx+1, ry+1, rz)
+        if ((rx+1,ry+1,rz) in self.map):
+            x = rx - 0.5
+            stop_x = True
+        elif ((rx-1,ry+1,rz) in self.map):
+            x = rx + 0.5
+            stop_x = True
+        elif ((rx,ry+1,rz+1) in self.map):
+            z = rz - 0.5
+            stop_z = True
+        elif ((rx,ry+1,rz-1) in self.map):
+            z = rz + 0.5
+            stop_z = True
+        
+        return x, y, z, stop_x, stop_y, stop_z
 
 
     def load_textures(self):
